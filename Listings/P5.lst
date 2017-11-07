@@ -1,0 +1,336 @@
+A51 MACRO ASSEMBLER  P5                                                                   11/06/2017 20:43:10 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.5.0
+OBJECT MODULE PLACED IN .\Objects\P5.obj
+ASSEMBLER INVOKED BY: C:\Users\Mariana\C51\BIN\A51.EXE P5.a51 SET(SMALL) DEBUG PRINT(.\Listings\P5.lst) OBJECT(.\Objects
+                      \P5.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ;Práctica 5 de Fundamentos de Microprocesadores
+
+                       2     ; OTOÑO 2017, profesor Mario Alberto Peredo
+
+                       3     ; Luisa Flores, Julián López y Mariana Sierra
+
+                       4     
+
+  0031                 5     LINEA EQU 31H           ;CUENTA DE CARACTÉRES POR RENGLÓN               
+
+                       6     
+
+0000                   7                     ORG 0000H
+
+0000 803E              8                     SJMP RESET
+
+0040                   9                     ORG 0040H
+
+                      10     
+
+0040 758000           11     RESET:  MOV P0,#00H                     ;INICALIZAR PANTALLA
+
+0043 75B038           12                     MOV P3,#38H                     
+
+                      13                     ;ESPERAR 4.1 milisegundos
+
+0046 D287             14                     SETB P0.7
+
+0048 C287             15                     CLR P0.7
+
+004A 75B038           16                     MOV P3,#38H                     
+
+                      17                     ;ESPERAR 100 microsegundos
+
+004D D287             18                     SETB P0.7
+
+004F C287             19                     CLR P0.7
+
+0051 75B038           20                     MOV P3,#38H                     
+
+                      21                     ;ESPERAR x
+
+0054 D287             22                     SETB P0.7
+
+0056 C287             23                     CLR P0.7
+
+                      24                     
+
+0058 75B001           25                     MOV P3,#01H                     ;LIMPIAR PANTALLA                       
+
+005B D287             26                     SETB P0.7
+
+005D C287             27                     CLR P0.7
+
+                      28                     
+
+005F 75B00E           29                     MOV P3,#00001110B       ;ENCENDER PANTALLA, CON CURSOS, SIN PARPADEO
+
+0062 D287             30                     SETB P0.7
+
+0064 C287             31                     CLR P0.7
+
+                      32                     
+
+0066 75B080           33                     MOV P3,#80H                     ;POSICIONAR CURSOR
+
+0069 D287             34                     SETB P0.7
+
+006B C287             35                     CLR P0.7
+
+                      36                     
+
+006D 753120           37                     MOV LINEA,#20H          ;INICIALIZAR EN 0 LAS CUENTAS
+
+                      38     
+
+0070 20A60E           39     MAIN:   JB P2.6,ASCII           ;DETECTAR SI ES EN CÓDIGO ASCII
+
+                      40                     
+
+0073 30A7FA           41     DATO:   JNB P2.7,MAIN                   ;DETECTAR SI EL DATO ESTA DISPONIBLE
+
+                      42                     ;DETECTAR SI HAY QUE ENVIAR POR EL PUERTO SERIAL
+
+                      43                     
+
+0076 E5A0             44                     MOV A,P2                        ;GUARDAR EL DATO QUE NO ES EN CÓDIGO ASCII
+
+0078 540F             45                     ANL A,#00001111B        
+
+007A F8               46                     MOV R0,A                        ; R0 = TECLADO DIRECTO
+
+007B C2A7             47                     CLR P2.7                        ;LISTO PARA RECIBIR OTRO DATO
+
+007D 801A             48                     SJMP T_DATO
+
+007F 80EF             49                     SJMP MAIN
+
+                      50     
+
+0081 C2A6             51     ASCII:  CLR P2.6
+
+                      52     
+
+0083 30A7FD           53                     JNB P2.7,$                      ;DETECTAR SI EL 1ER DATO ESTA DISPONIBLE
+
+0086 E5A0             54                     MOV A,P2                        
+
+0088 540F             55                     ANL A,#00001111B        
+
+008A F9               56                     MOV R1,A                        ; R1 = ASCII_1
+
+008B C2A7             57                     CLR P2.7                        ;LISTO PARA RECIBIR OTRO DATO
+
+A51 MACRO ASSEMBLER  P5                                                                   11/06/2017 20:43:10 PAGE     2
+
+                      58                     
+
+008D 30A7FD           59                     JNB P2.7,$                      ;DETECTAR SI 2DO EL DATO ESTA DISPONIBLE
+
+0090 E5A0             60                     MOV A,P2                
+
+0092 540F             61                     ANL A,#00001111B        
+
+0094 FA               62                     MOV R2,A                        ; R2 = ASCII_2
+
+0095 C2A7             63                     CLR P2.7                        
+
+                      64                                     
+
+                      65                     ;TRANSMITIR EL DATO ASCII
+
+0097 80D7             66                     SJMP MAIN
+
+                      67                     
+
+                      68                     
+
+                      69                     
+
+0099 D5311E           70     T_DATO:         DJNZ LINEA, FIN_LCD             ;CAMBIAR A 33D SI NO ES SUFICIENTE
+
+009C E531             71                             MOV A, LINEA
+
+009E B41009           72                             CJNE A,#10H, TRANSMITIR
+
+                      73                             
+
+00A1 C285             74                             CLR P0.5
+
+                      75                             
+
+00A3 75B0C0           76                             MOV P3,#0C0H
+
+00A6 D287             77                             SETB P0.7
+
+00A8 C287             78                             CLR P0.7
+
+                      79                             
+
+                      80                             
+
+00AA D285             81     TRANSMITIR:     SETB P0.5               ;ACTIVAR RS
+
+                      82     
+
+00AC E8               83                             MOV A,R0
+
+00AD 2430             84                             ADD A,#30H              ;SUMARLE 30H PORQUE NO ES HEXA
+
+00AF F8               85                             MOV R0,A
+
+00B0 88B0             86                             MOV P3,R0               ;MANDAR EL DATO         
+
+00B2 D287             87                             SETB P0.7
+
+00B4 C287             88                             CLR P0.7
+
+                      89                             
+
+00B6 C285             90                             CLR P0.5                ;DESACTIVAR RS
+
+00B8 80B6             91                             SJMP MAIN
+
+                      92     
+
+                      93     
+
+00BA 753120           94     FIN_LCD:        MOV LINEA,#20H
+
+00BD C285             95                             CLR P0.5                ;RS = 0 POR SI ACASO
+
+                      96                             
+
+00BF 75B001           97                             MOV P3,#01H                     ;LIMPIAR PANTALLA                  
+                                  
+
+00C2 D287             98                             SETB P0.7
+
+00C4 C287             99                             CLR P0.7
+
+                     100                             
+
+00C6 75B080          101                             MOV P3,#80H                     ;MOVER EL CURSOR
+
+00C9 D287            102                             SETB P0.7
+
+00CB C287            103                             CLR P0.7
+
+                     104                             
+
+00CD 80DB            105                             SJMP TRANSMITIR
+
+                     106                             
+
+00CF D531E8          107     TA_DATO:        DJNZ LINEA, FIN_LCD             ;CAMBIAR A 33D SI NO ES SUFICIENTE
+
+00D2 E531            108                             MOV A, LINEA
+
+00D4 B41009          109                             CJNE A,#10H, TRANSMITIR_A
+
+                     110                             
+
+00D7 C285            111                             CLR P0.5
+
+                     112                             
+
+00D9 75B0C0          113                             MOV P3,#0C0H
+
+00DC D287            114                             SETB P0.7
+
+00DE C287            115                             CLR P0.7
+
+                     116                             
+
+                     117                             
+
+00E0 D285            118     TRANSMITIR_A:   SETB P0.5               ;ACTIVAR RS
+
+                     119     
+
+00E2 88B0            120                             MOV P3,R0               ;MANDAR EL DATO         
+
+00E4 D287            121                             SETB P0.7
+
+00E6 C287            122                             CLR P0.7
+
+A51 MACRO ASSEMBLER  P5                                                                   11/06/2017 20:43:10 PAGE     3
+
+                     123                             
+
+00E8 C285            124                             CLR P0.5                ;DESACTIVAR RS
+
+00EA 8084            125                             SJMP MAIN
+
+                     126     
+
+                     127     
+
+00EC 753120          128     FIN_LCD_A:      MOV LINEA,#20H
+
+00EF C285            129                             CLR P0.5                ;RS = 0 POR SI ACASO
+
+                     130                             
+
+00F1 75B001          131                             MOV P3,#01H                     ;LIMPIAR PANTALLA                  
+                                  
+
+00F4 D287            132                             SETB P0.7
+
+00F6 C287            133                             CLR P0.7
+
+                     134                             
+
+00F8 75B080          135                             MOV P3,#80H                     ;MOVER EL CURSOR
+
+00FB D287            136                             SETB P0.7
+
+00FD C287            137                             CLR P0.7
+
+                     138                             
+
+00FF 80DF            139                             SJMP TRANSMITIR_A
+
+                     140                                     
+
+                     141                     
+
+                     142             
+
+                     143                     
+
+                     144                     
+
+                     145                     
+
+                     146                     END
+
+A51 MACRO ASSEMBLER  P5                                                                   11/06/2017 20:43:10 PAGE     4
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+ASCII. . . . . . .  C ADDR   0081H   A   
+DATO . . . . . . .  C ADDR   0073H   A   
+FIN_LCD. . . . . .  C ADDR   00BAH   A   
+FIN_LCD_A. . . . .  C ADDR   00ECH   A   
+LINEA. . . . . . .  N NUMB   0031H   A   
+MAIN . . . . . . .  C ADDR   0070H   A   
+P0 . . . . . . . .  D ADDR   0080H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+RESET. . . . . . .  C ADDR   0040H   A   
+TA_DATO. . . . . .  C ADDR   00CFH   A   
+TRANSMITIR . . . .  C ADDR   00AAH   A   
+TRANSMITIR_A . . .  C ADDR   00E0H   A   
+T_DATO . . . . . .  C ADDR   0099H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
